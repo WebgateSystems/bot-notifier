@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-# Suppress specific circular require warnings from dependencies
-Warning[:deprecated] = false if defined?(Warning) && Warning.respond_to?(:[]=)
-
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 require "bundler/setup"
 
@@ -44,7 +41,7 @@ RSpec.configure do |config|
 
   config.shared_context_metadata_behavior = :apply_to_host_groups
   config.filter_run_when_matching :focus
-  
+
   # Disable warnings during test runs since we have circular dependencies in our dependencies
   config.warnings = false
 
