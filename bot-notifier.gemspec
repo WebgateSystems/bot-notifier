@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
   spec.name          = "bot-notifier"
-  spec.version       = "4.0.0"
+  spec.version       = "4.0.1"
   spec.authors       = ["Jerzy Sładkowski"]
   spec.email         = ["jerzy.sladkowski@gmail.com"]
   spec.summary       = "A flexible notification sender that can push JSON payloads to any webhook URL"

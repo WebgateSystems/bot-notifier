@@ -2,6 +2,7 @@
 
 require "spec_helper"
 DeploymentHelpers.require_capistrano
+require_relative "../../../lib/bot/capistrano"
 
 RSpec.describe Bot::Capistrano do
   include Capistrano::DSL
@@ -9,6 +10,8 @@ RSpec.describe Bot::Capistrano do
   let(:stage) { :staging }
   let(:application) { "test-app" }
   let(:deploy_to) { "/tmp/capistrano/test" }
+  let(:hooks) { [] }
+  let(:registered_hooks) { [] }
 
   before do
     # Reset Capistrano configuration for each test
@@ -18,6 +21,39 @@ RSpec.describe Bot::Capistrano do
     set :stage, stage
     set :application, application
     set :deploy_to, deploy_to
+
+    # Track task registration and hook registration
+    original_define_task = Rake::Task.method(:define_task)
+    allow(Rake::Task).to receive(:define_task) do |task_name, *args, &block|
+      hooks << task_name.to_s if task_name.to_s.start_with?("bot:")
+      original_define_task.call(task_name, *args, &block)
+    end
+
+    # Track hook registration
+    Rake::Task.instance_method(:enhance)
+    allow(Rake::Task).to receive(:new).and_wrap_original do |method, *args|
+      task = method.call(*args)
+      allow(task).to receive(:enhance) do |prerequisites = nil, &block|
+        registered_hooks << "before:#{task.name}" if prerequisites
+        registered_hooks << "after:#{task.name}" if block
+
+        # Call original enhance functionality
+        task.prerequisites.concat(Array(prerequisites)) if prerequisites
+        task.actions << block if block
+        task
+      end
+      task
+    end
+
+    # Define Capistrano deployment tasks
+    Rake::Task.define_task("deploy:starting")
+    Rake::Task.define_task("deploy:finished")
+    Rake::Task.define_task("deploy:failed")
+
+    # Mock the notifier
+    allow(Bot::Tasks::Notifier).to receive(:notify_deploy_starting)
+    allow(Bot::Tasks::Notifier).to receive(:notify_deploy_finished)
+    allow(Bot::Tasks::Notifier).to receive(:notify_deploy_failed)
 
     # Load our tasks
     described_class.load_into(Capistrano::Configuration.env)
@@ -108,6 +144,76 @@ RSpec.describe Bot::Capistrano do
 
     it "allows overriding deployer" do
       expect(fetch(:deployer)).to eq("John")
+    end
+  end
+
+  describe "hooks" do
+    it "registers bot:starting task" do
+      expect(hooks).to include("bot:starting")
+    end
+
+    it "registers bot:finished task" do
+      expect(hooks).to include("bot:finished")
+    end
+
+    it "registers bot:failed task" do
+      expect(hooks).to include("bot:failed")
+    end
+
+    it "registers hooks for deployment events" do
+      expect(registered_hooks).to include("before:deploy:starting")
+      expect(registered_hooks).to include("after:deploy:finished")
+      expect(registered_hooks).to include("after:deploy:failed")
+    end
+
+    describe "when hooks are triggered" do
+      before do
+        # Set up configuration values
+        set :bn_webhook_url, "https://example.com/webhook"
+        set :bn_app_name, "my-app"
+        set :bn_destination, "production"
+        set :deployer, "John"
+        set :branch, "main"
+
+        # Reset hooks tracking for this context
+        hooks.clear
+
+        # Define the tasks again to ensure they exist
+        Rake::Task.define_task("bot:starting")
+        Rake::Task.define_task("bot:finished")
+        Rake::Task.define_task("bot:failed")
+
+        # Set up Rake environment values
+        values = {
+          "bn_webhook_url" => "https://example.com/webhook",
+          "bn_app_name" => "my-app",
+          "bn_destination" => "production",
+          "deployer" => "John",
+          "branch" => "main"
+        }
+        Rake.application.instance_variable_set(:@values, values)
+
+        # Mock the fetch method in Bot::Tasks::Notifier to use Capistrano values
+        allow(Bot::Tasks::Notifier).to receive(:fetch).and_wrap_original do |_original_method, *args|
+          key = args.first
+          Capistrano::Configuration.env.fetch(key)
+        end
+      end
+
+      it "sends starting notification" do
+        Rake::Task["bot:starting"].invoke
+        expect(Bot::Tasks::Notifier).to have_received(:notify_deploy_starting)
+      end
+
+      it "sends finished notification" do
+        Rake::Task["bot:finished"].invoke
+        expect(Bot::Tasks::Notifier).to have_received(:notify_deploy_finished)
+      end
+
+      it "sends failed notification" do
+        Rake::Task["bot:failed"].invoke
+        expect(Bot::Tasks::Notifier).to have_received(:notify_deploy_failed)
+      end
     end
   end
 end

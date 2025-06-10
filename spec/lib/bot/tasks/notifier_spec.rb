@@ -3,18 +3,12 @@
 require "spec_helper"
 require "rake"
 require "bot/tasks/notifier"
-DeploymentHelpers.require_capistrano
 
 RSpec.describe Bot::Tasks::Notifier do
-  include Capistrano::DSL
-
   let(:notifier) { instance_double(Bot::Notifier) }
   let(:rake) { Rake::Application.new }
 
   before do
-    # Reset Capistrano configuration
-    Capistrano::Configuration.reset!
-
     # Setup Rake
     Rake.application = rake
     Rake::Task.clear
@@ -45,7 +39,7 @@ RSpec.describe Bot::Tasks::Notifier do
     end
 
     # Load rake tasks
-    load File.expand_path("../../../../lib/bot/tasks/bot_notifier.rake", File.dirname(__FILE__))
+    load "lib/bot/tasks/bot_notifier.rake"
   end
 
   describe "rake tasks" do

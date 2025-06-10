@@ -1,25 +1,39 @@
 # frozen_string_literal: true
 
+# Filter out circular dependency warnings from Capistrano and Airbrussh
+Warning.module_eval do
+  def self.warn(message)
+    if message.include?("warning: loading in progress, circular require considered harmful") && (message.include?("capistrano") || message.include?("airbrussh"))
+      return
+    end
+
+    super
+  end
+end
+
+$LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 require "bundler/setup"
-require "bot-notifier"
+
+# Load Rake first
 require "rake"
 
-# Only require deployment gems when needed
+# Load SSHKit
+require "sshkit"
+require "sshkit/dsl"
+
 module DeploymentHelpers
   def self.require_capistrano
-    # First load SSHKit to avoid circular requires with airbrussh
-    require "sshkit"
-    # Then load capistrano core without airbrussh
-    require "capistrano/all"
-    # Now load our capistrano integration
-    require "bot/capistrano"
+    # Load our test Capfile which handles all Capistrano setup
+    require_relative "support/capfile"
   end
 
   def self.require_mina
     require "mina"
-    require "bot/mina"
   end
 end
+
+# Load our gem
+require "bot-notifier"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
