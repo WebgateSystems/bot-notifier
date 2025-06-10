@@ -2,20 +2,20 @@
 
 Gem::Specification.new do |spec|
   spec.name          = "bot-notifier"
-  spec.version       = "3.0.1"
+  spec.version       = "4.0.0"
   spec.authors       = ["Jerzy Sładkowski"]
   spec.email         = ["jerzy.sladkowski@gmail.com"]
-  spec.summary       = "Bot notifier for team messengers like Slack or Mattermost, based on https://github.com/parkr/capistrano-slack-notify"
+  spec.summary       = "A flexible notification sender that can push JSON payloads to any webhook URL"
+  spec.description   = "Simple HTTP notification sender for any messenger platform like Mattermost, Slack " \
+                       "or Microsoft Teams. Feel free to add your own, favorite messanger :)"
   spec.homepage      = "https://github.com/WebgateSystems/bot-notifier"
   spec.license       = "MIT"
   spec.required_ruby_version = ">= 2.7.0"
-  spec.metadata["rubygems_mfa_required"] = "true"
 
-  spec.files         = `git ls-files -z`.split("\x0").grep(%r{^(bin|lib)/})
-  spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
+  spec.files         = Dir.glob("{lib,spec}/**/*") + %w[README.md LICENSE.txt]
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "activesupport"
-  spec.add_dependency "capistrano", "~> 3.0"
-  spec.add_dependency "sshkit", "~> 1.21"
+  spec.add_dependency "httparty", "~> 0.21"
+  spec.add_dependency "json", "~> 2.0"
+  spec.metadata["rubygems_mfa_required"] = "true"
 end
