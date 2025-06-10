@@ -1,16 +1,11 @@
 # frozen_string_literal: true
 
-# Load core Capistrano functionality
-require "capistrano/dsl"
+# Load core Capistrano functionality first
 require "capistrano/configuration"
+require "capistrano/dsl"
 
-# Load DSL and Setup Up Stages
-require "capistrano/setup"
-
-# Include default deployment tasks
-require "capistrano/deploy"
-
-# Load airbrussh
+# Load airbrussh before setup
+require "airbrussh"
 require "airbrussh/capistrano"
 
 # Configure airbrussh
@@ -19,3 +14,7 @@ Airbrussh.configure do |config|
   config.truncate = false
   config.color = false
 end
+
+# Load DSL and Setup Up Stages last
+require "capistrano/setup"
+require "capistrano/deploy"

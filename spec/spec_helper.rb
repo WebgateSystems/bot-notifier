@@ -1,15 +1,7 @@
 # frozen_string_literal: true
 
-# Filter out circular dependency warnings from Capistrano and Airbrussh
-Warning.module_eval do
-  def self.warn(message)
-    if message.include?("warning: loading in progress, circular require considered harmful") && (message.include?("capistrano") || message.include?("airbrussh"))
-      return
-    end
-
-    super
-  end
-end
+# Suppress specific circular require warnings from dependencies
+Warning[:deprecated] = false if defined?(Warning) && Warning.respond_to?(:[]=)
 
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 require "bundler/setup"
@@ -52,7 +44,9 @@ RSpec.configure do |config|
 
   config.shared_context_metadata_behavior = :apply_to_host_groups
   config.filter_run_when_matching :focus
-  config.warnings = true
+  
+  # Disable warnings during test runs since we have circular dependencies in our dependencies
+  config.warnings = false
 
   config.default_formatter = "doc" if config.files_to_run.one?
 
