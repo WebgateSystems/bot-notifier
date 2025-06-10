@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
   spec.name          = "bot-notifier"
-  spec.version       = "3.0.0"
+  spec.version       = "3.0.1"
   spec.authors       = ["Jerzy Sładkowski"]
   spec.email         = ["jerzy.sladkowski@gmail.com"]
   spec.summary       = "Bot notifier for team messengers like Slack or Mattermost, based on https://github.com/parkr/capistrano-slack-notify"

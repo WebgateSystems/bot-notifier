@@ -1,4 +1,4 @@
 # frozen_string_literal: true
 
 require "bot/notifier"
-require "capistrano/bot_notifier"
+require "capistrano/bot_notifier" if defined?(Capistrano::Application)

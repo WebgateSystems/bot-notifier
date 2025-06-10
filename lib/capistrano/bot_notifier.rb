@@ -3,4 +3,5 @@
 require "capistrano/plugin"
 require "bot/notifier"
 
-load File.expand_path("tasks/bot_notifier.rake", __dir__)
+# Only load Capistrano tasks if we're in a Capistrano context
+load File.expand_path("tasks/bot_notifier.rake", __dir__) if defined?(Capistrano::Application)

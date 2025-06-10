@@ -59,8 +59,8 @@ namespace :bn do
   end
 end
 
-# Register hooks if we're in a Capistrano environment
-if defined?(Capistrano)
+# Register hooks only if we're in a Capistrano deploy context
+if defined?(Capistrano::Application)
   after "deploy:starting", "bn:starting"
   after "deploy:finishing", "bn:finished"
   after "deploy:failed", "bn:failed"
