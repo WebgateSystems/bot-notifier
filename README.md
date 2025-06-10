@@ -1,8 +1,6 @@
-# Bot::Notifier
+# Bot Notifier
 
-Deploy notifier for team messangers like Slack, Mattermost or Teams. Based on https://github.com/parkr/capistrano-slack-notify.
-
-![Sample Slack output for success.](https://raw.githubusercontent.com/WebgateSystems/bot-notifier/main/screenshot.png)
+A Ruby gem for sending deployment notifications to various messaging platforms (Slack, Microsoft Teams, Mattermost).
 
 ## Installation
 
@@ -14,69 +12,113 @@ gem 'bot-notifier'
 
 And then execute:
 
-    $ bundle
+```bash
+$ bundle install
+```
 
 Or install it yourself as:
 
-    $ gem install bot-notifier
+```bash
+$ gem install bot-notifier
+```
 
 ## Usage
 
-`bot-notifier` defines two tasks:
+### Basic Usage
 
-Add the following to your `Capfile`:
+```ruby
+bn = Bot::Notifier.new('YOUR_WEBHOOK_URL')
+bn.notify('Hello from Bot Notifier!')
+```
+
+### Capistrano Integration
+
+Add to your `config/deploy.rb`:
 
 ```ruby
 require 'bot-notifier'
+
+# Required settings
+set :bn_webhook_url, 'YOUR_WEBHOOK_URL'
+
+# Optional settings with defaults
+set :bn_messenger, :slack          # :slack, :teams, or :mattermost
+set :bn_room, '#deployments'       # Channel/room to post to
+set :bn_username, 'DeployBot'      # Bot username
+set :bn_emoji, ':rocket:'          # Bot emoji
+set :bn_app_name, 'my-app'         # Defaults to :application
+set :bn_color, true                # Enable/disable colors
+set :bn_destination, 'production'   # Defaults to :stage or 'staging'
+set :deployer, ENV.fetch('USER', nil).capitalize # Who is deploying
 ```
 
-That's it! It'll send 2 messages to `#general` as the `capistrano` user when you deploy.
+The integration will automatically:
+- Send a notification when deployment starts
+- Send a notification when deployment finishes successfully
+- Send a notification when deployment fails
 
-The tasks are:
+You can also test the notifications with:
+```bash
+cap <stage> bot:test
+```
 
-- `bn:starting`    - the intent-to-deploy message
-- `bn:finished`    - the completion message
-- `bn:failed`      - the failure message
-- `bn:rolled_back` - the rollback message
+### Mina Integration
 
-**None of the tasks are automatically added**, you have to do that yourself,
-like in the usage example above.
-
-You can optionally set some other parameters to customize the output:
+Add to your `config/deploy.rb`:
 
 ```ruby
-set :bn_webhook_url,   "https://hooks.slack.com/services/XXX/XXX/XXX"
-set :bn_messenger, :mattermost # defaults to :slack, also supports :teams
-set :bn_room,     '#my_channel' # defaults to #platform
-set :bn_username, 'my-company-bot' # defaults to 'capistrano'
-set :bn_emoji,    ':ghost:' # defaults to :rocket:
-set :bn_icon_url, 'https://example.com/bot-icon.png' # optional, for Mattermost
-set :deployer,       ENV['USER'].capitalize # defaults to ENV['USER']
-set :bn_app_name, 'example-app' # defaults to :application
-set :bn_color,    false # defaults to true
-set :bn_destination, fetch(:stage, 'production') # where your code is going
+require 'bot-notifier'
+
+# Required settings
+set :bn_webhook_url, 'YOUR_WEBHOOK_URL'
+
+# Optional settings with defaults
+set :bn_messenger, :slack          # :slack, :teams, or :mattermost
+set :bn_room, '#deployments'       # Channel/room to post to
+set :bn_username, 'DeployBot'      # Bot username
+set :bn_emoji, ':rocket:'          # Bot emoji
+set :bn_app_name, 'my-app'         # Defaults to :application_name
+set :bn_color, true                # Enable/disable colors
+set :bn_destination, 'production'   # Defaults to :stage or :rails_env or 'staging'
+set :deployer, ENV.fetch('USER', nil).capitalize # Who is deploying
+
+# Important: Initialize the bot notifier hooks
+Bot::Mina.setup!
 ```
 
-### Messenger Types
+The `setup!` call is required to initialize the Mina hooks. Once initialized, the integration will automatically:
+- Send a notification when deployment starts
+- Send a notification when deployment finishes successfully
+- Send a notification when deployment fails
 
-The gem supports different messenger platforms with their specific message formats:
+### Platform-Specific Features
 
-- `:slack` (default) - Uses Slack's attachment format for colored messages
-- `:mattermost` - Uses status emojis to indicate message type:
-  - Starting: `:arrow_right:`
-  - Success: `:white_check_mark:`
-  - Failure/Rollback: `:x:`
-  - Info: `:information_source:`
-- `:teams` - Uses Microsoft Teams' message card format
+#### Slack
+- Supports message formatting with emojis
+- Customizable username and channel
+- Colored attachments
+- Fields and sections
 
-Each platform has its own way of handling colors and formatting. Set `:bn_messenger` to match your platform for the best results.
+#### Microsoft Teams
+- Supports message cards
+- Theme colors
+- Sections and facts
+- Rich text formatting
 
-For Mattermost, you can optionally set a custom icon URL using `:bn_icon_url`. This is useful if you want to use a custom bot icon instead of an emoji.
+#### Mattermost
+- Supports Markdown formatting
+- Custom props
+- Message cards
+- Channel overrides
+
+## Development
+
+After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
 
 ## Contributing
 
-1. Fork it ( https://github.com/WebgateSystems/bot-notifier/fork )
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create a new Pull Request
+Bug reports and pull requests are welcome on GitHub. This project is intended to be a safe, welcoming space for collaboration.
+
+## License
+
+The gem is available as open source under the terms of the MIT License.

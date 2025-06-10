@@ -26,6 +26,11 @@ Metrics/BlockLength:
     - 'spec/**/*'
     - '*.gemspec'
     - 'lib/capistrano/tasks/*.rake'
+    - 'lib/bot/tasks/bot_notifier.rake'
+
+Metrics/ClassLength:
+  Exclude:
+    - 'lib/bot/mina.rb'
 
 Layout/LineLength:
   Max: 120
@@ -34,6 +39,8 @@ Layout/LineLength:
 
 Metrics/MethodLength:
   Max: 25
+  Exclude:
+    - 'lib/bot/mina.rb'
 
 Metrics/AbcSize:
   Max: 25
