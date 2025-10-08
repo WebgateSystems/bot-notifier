@@ -57,6 +57,35 @@ set :bn_color,    false # defaults to true
 set :bn_destination, fetch(:stage, 'production') # where your code is going
 ```
 
+## TLS / CRL verification
+
+`bot-notifier` sends webhook requests over HTTPS with TLS peer verification enabled.
+
+Some Ruby/OpenSSL environments (e.g., Ruby 3.4+ with OpenSSL 3.x) may implicitly
+require CRL (Certificate Revocation List) checks. Ruby does **not** fetch CRLs
+automatically; if CRLs are required but missing, you may see:
+
+
+To control CRL behavior, use:
+
+```ruby
+# Safe default (recommended): TLS verification ON, CRL checks OFF
+set :bn_ssl_crl_check, :none
+# or legacy switch:
+# set :bn_ssl_disable_crl, true
+
+# Optional: enable CRL checks (requires CRLs to be present)
+# set :bn_ssl_crl_check, :leaf
+# set :bn_ssl_crl_check, :all
+
+# Optional CA locations:
+# set :bn_ssl_cert_file, "/etc/ssl/cert.pem"
+# set :bn_ssl_cert_dir,  "/etc/ssl/certs"
+```
+
+This keeps security sane (peer verification stays enabled) while avoiding brittle
+CRL requirements unless you explicitly opt in.
+
 ### Messenger Types
 
 The gem supports different messenger platforms with their specific message formats:

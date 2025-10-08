@@ -39,7 +39,7 @@ Metrics/AbcSize:
   Max: 25
 
 Metrics/ModuleLength:
-  Max: 150
+  Max: 170
   Exclude:
     - 'spec/**/*'
 
@@ -48,6 +48,22 @@ Style/HashSyntax:
 
 RSpec/ExampleLength:
   Max: 20
+
+Metrics/CyclomaticComplexity:
+  Exclude:
+    - 'lib/bot/notifier.rb'
+
+Metrics/PerceivedComplexity:
+  Exclude:
+    - 'lib/bot/notifier.rb'
+
+RSpec/FilePath:
+  Exclude:
+    - 'spec/lib/capistrano/dsl_ssl_cert_store_spec.rb'
+
+RSpec/SpecFilePathFormat:
+  Exclude:
+    - 'spec/lib/capistrano/dsl_ssl_cert_store_spec.rb'
 
 RSpec/MultipleExpectations:
   Max: 5

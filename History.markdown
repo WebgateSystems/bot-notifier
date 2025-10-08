@@ -1,3 +1,20 @@
+## [3.1.0] - 2025-10-08
+### Added
+- Configurable TLS/CRL verification for webhook requests:
+  - `:bn_ssl_crl_check` => `:none` (default), `:leaf`, `:all`
+  - `:bn_ssl_disable_crl` => legacy boolean kill-switch
+  - `:bn_ssl_cert_file`, `:bn_ssl_cert_dir` => custom CA locations
+- Default behavior keeps TLS peer verification **enabled** while **not** requiring CRLs,
+  improving compatibility with Ruby 3.4+ and OpenSSL 3.x.
+
+### Fixed
+- Avoids `OpenSSL::SSL::SSLError (unable to get certificate CRL)` on environments where CRL checks are required
+  but CRLs are not present.
+
+### Notes
+- If you enable CRL checking (`:leaf` or `:all`), ensure your environment provides the necessary CRLs.
+  Ruby/OpenSSL does not fetch CRLs automatically.
+
 ## 1.3.4 / 2019-06-27
 
   * If no branch is specified, derive revision from HEAD (#29)
